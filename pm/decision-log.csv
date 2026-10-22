@@ -1,0 +1,3 @@
+ID,Date,Decision,Reason,Alternatives considered,Decided by,Related
+DEC-01,2026-10-22,Build the prototype as a browser-only web app with no server,Fits the timeline and lets testers use it on any phone; the full API will be specified separately,Firebase back end; Kotlin Android app,Basant Tamang,Charter scope
+DEC-02,2026-10-22,SMS confirmation is specified but simulated in the prototype,No SMS gateway access for a study project,Integrate a paid SMS API,Basant Tamang,FR-11

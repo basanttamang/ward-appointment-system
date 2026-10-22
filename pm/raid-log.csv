@@ -1,0 +1,10 @@
+ID,Type,Description,Likelihood,Impact,Owner,Response / action,Status,Raised,Updated
+R1,Risk,Ward staff unavailable for interview,Medium,High,Basant,Interview citizens first; ask a contact to introduce; use published service lists,Open,2026-10-22,
+R2,Risk,Volunteer team has limited time,High,Medium,Basant,Small prototype scope; must-haves first,Open,2026-10-22,
+R3,Risk,Scope grows (payments; SMS),Medium,Medium,Basant,All changes through change request and decision log,Open,2026-10-22,
+R4,Risk,Tight timeline to 2 Nov,High,High,Basant,Check-in every two days; cut should-haves first,Open,2026-10-22,
+R5,Risk,Requirements based on assumptions,Medium,High,Basant,Mark assumed requirements; validate each with a stakeholder,Open,2026-10-22,
+A1,Assumption,Each ward sets its own hours and slots per service,,,Basant,Confirm with ward staff,Open,2026-10-22,
+A2,Assumption,An SMS gateway is available to the municipality,,,Basant,Confirm with ward staff,Open,2026-10-22,
+I1,Issue,Project started 2 days later than first planned,,Medium,Basant,Prototype and documents drafted in advance; analysis compressed,Open,2026-10-22,
+D1,Dependency,UAT testers available on 31 Oct,,,Tester,Book 3 testers by 28 Oct,Open,2026-10-22,
