@@ -1,3 +1,5 @@
 ID,Date,Decision,Reason,Alternatives considered,Decided by,Related
 DEC-01,2026-10-22,Build the prototype as a browser-only web app with no server,Fits the timeline and lets testers use it on any phone; the full API will be specified separately,Firebase back end; Kotlin Android app,Basant Tamang,Charter scope
 DEC-02,2026-10-22,SMS confirmation is specified but simulated in the prototype,No SMS gateway access for a study project,Integrate a paid SMS API,Basant Tamang,FR-11
+DEC-03,2026-10-24,Status reports issued on Saturdays (24 Oct and 31 Oct) instead of Fridays,The baseline plan listed 'Friday 24 Oct' but 24 Oct 2026 is a Saturday; baseline left unchanged and corrected here,Keep Friday (23 and 30 Oct),Basant Tamang,pm/01-baseline-plan.md
+DEC-04,2026-10-24,Pain point IDs are never reused; new findings get new IDs (P8-P10),Keeps traceability from requirements back to sources,Renumber the list,Basant Tamang,docs/02-interview-notes.md

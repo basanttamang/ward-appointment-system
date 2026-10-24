@@ -25,6 +25,15 @@
 7. Who should be able to see or change a booking?
 8. How should walk-in visitors be handled if a booking system existed?
 
+## Recommendation letters (for the sifaris feasibility study)
+
+Ask these at the end if the person has needed a recommendation letter:
+
+1. (Citizen) Which recommendation letter did you need, and where did you take it?
+2. (Citizen) Did the receiving office accept it straight away, or ask you to verify it or come back?
+3. (Staff) How do you record the letters you issue? Paper register, Excel or a system?
+4. (Staff) Do other offices ever contact you to check a letter? Have you seen fake or altered letters?
+
 ## After each interview
 
 Write up notes the same day in [02-interview-notes.md](02-interview-notes.md). List each pain point with an ID (P1, P2…) so requirements can trace back to it.

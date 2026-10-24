@@ -4,7 +4,7 @@
 
 Citizens visiting ward offices in Kathmandu often queue without knowing how long they will wait or which documents to bring, and many need a second visit. Staff cannot plan their day because demand is unpredictable. This project analyses that service and specifies, prototypes and tests an online appointment system for it.
 
-> **Status:** Day 1 of 12 — planning complete, stakeholder interviews next.
+> **Status:** Day 3 of 12 — citizen interviews done; four problems found, three of them new. Requirements update next.
 
 ## Deliverables
 
@@ -13,7 +13,7 @@ Citizens visiting ward offices in Kathmandu often queue without knowing how long
 | 1 | [Project charter](docs/00-project-charter.md) | Done — awaiting team agreement |
 | 2 | [Baseline project plan](pm/01-baseline-plan.md) | Done |
 | 3 | [Interview guide](docs/01-interview-guide.md) | Done |
-| 4 | [Interview notes and pain points](docs/02-interview-notes.md) | Template ready — interviews 23 Oct |
+| 4 | [Interview notes and pain points](docs/02-interview-notes.md) | Done — staff interview still to come |
 | 5 | Process flows: as-is and to-be | Planned 25 Oct |
 | 6 | Software Requirements Specification | Planned 25 Oct |
 | 7 | Data model | Planned 25 Oct |
@@ -24,13 +24,14 @@ Citizens visiting ward offices in Kathmandu often queue without knowing how long
 | 12 | UAT results and acceptance record | Planned 31 Oct |
 | 13 | Handover pack and closure report | Planned 1–2 Nov |
 
-Project management records: [RAID log](pm/raid-log.csv) · [Decision log](pm/decision-log.csv) · [Change log](pm/change-log.csv) · [Status report template](pm/status-report-template.md)
+Project management records: [Status report 1](pm/status-report-1.md) · [RAID log](pm/raid-log.csv) · [Decision log](pm/decision-log.csv) · [Change log](pm/change-log.csv) · [Status report template](pm/status-report-template.md)
 
 ## Progress log
 
 | Date | What was done |
 |---|---|
 | 22 Oct 2026 | Project charter, baseline plan with three-point estimates, risk log and interview guide created. Team invited. |
+| 23–24 Oct 2026 | Citizen interviews. Found that queues are only one of four problems: people are also sent between rooms, the existing system goes down, and the signing officer is often absent. Status report 1 issued. |
 
 ## Approach
 
