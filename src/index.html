@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ward 4 Appointments — Prototype</title>
+<style>
+  :root{
+    --bg:#F4F6F8; --surface:#FFFFFF; --ink:#18212B; --muted:#5B6773; --line:#D9DFE5;
+    --brand:#1F4E8C; --brand-soft:#E6EEF8; --ok:#1E7A46; --ok-soft:#E4F3EA;
+    --warn:#A15C00; --warn-soft:#FBF0DF; --bad:#B42318; --bad-soft:#FCE8E6;
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font)}
+  header{background:var(--brand);color:#fff}
+  header .in{max-width:960px;margin:0 auto;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0}
+  header small{opacity:.8}
+  .proto{background:var(--warn-soft);color:var(--warn);font-size:13px;text-align:center;padding:6px 16px}
+  nav{background:var(--surface);border-bottom:1px solid var(--line)}
+  nav .in{max-width:960px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+  nav button{border:0;background:none;padding:12px 14px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  nav button[aria-selected="true"]{color:var(--brand);border-color:var(--brand);font-weight:600}
+  main{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+  h2{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+  .step{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--brand);margin-bottom:8px}
+  label{display:block;font-weight:600;margin:12px 0 4px}
+  input,select{width:100%;max-width:420px;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .btn{display:inline-block;font:inherit;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+  .btn.sec{background:#fff;color:var(--brand)}
+  .btn.small{padding:5px 10px;font-size:13px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .docs{margin:8px 0 0;padding-left:20px}
+  .meta{color:var(--muted);font-size:14px}
+  .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:8px}
+  .slots button{font:inherit;padding:8px 0;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .slots button[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .msg{padding:10px 12px;border-radius:8px;margin-top:12px}
+  .msg.err{background:var(--bad-soft);color:var(--bad)}
+  .msg.ok{background:var(--ok-soft);color:var(--ok)}
+  .ref{font:600 22px ui-monospace,Consolas,monospace;letter-spacing:.04em}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .row > div{flex:1 1 200px}
+  .totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .totals div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .totals b{display:block;font-size:24px;font-variant-numeric:tabular-nums}
+  .totals span{color:var(--muted);font-size:13px}
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--surface)}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .s-Booked{background:var(--brand-soft);color:var(--brand)}
+  .s-Arrived{background:var(--warn-soft);color:var(--warn)}
+  .s-Completed{background:var(--ok-soft);color:var(--ok)}
+  .s-NoShow,.s-Cancelled{background:var(--bad-soft);color:var(--bad)}
+  .walk{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  textarea{width:100%;min-height:120px;font:13px ui-monospace,Consolas,monospace;padding:10px;border:1px solid var(--line);border-radius:8px}
+  footer{max-width:960px;margin:0 auto;padding:0 16px 32px;color:var(--muted);font-size:13px}
+  @media (max-width:560px){.totals{grid-template-columns:repeat(2,1fr)}}
+  .room{display:inline-block;font-weight:600;background:var(--brand-soft);color:var(--brand);padding:2px 8px;border-radius:6px}
+  .avail{margin:10px 0 0;font-size:14px}
+  .avail.no{color:var(--bad);font-weight:600}
+  .rebook{font-size:11px;color:var(--bad);border:1px solid var(--bad);border-radius:4px;padding:0 4px;margin-left:4px}
+  .printhead{display:none}
+  @media print{
+    header,nav,.proto,footer,.no-print,#view-book,#view-manage,#view-report,#view-audit{display:none!important}
+    #view-queue{display:block!important}
+    body{background:#fff}
+    .printhead{display:block;margin-bottom:12px}
+    .actions{display:none}
+    .tablewrap{overflow:visible}
+    th:last-child,td:last-child{display:none}
+    table{font-size:12px}
+  }
+</style>
+</head>
+<body>
+<header><div class="in"><div><h1>Ward No. 4 Office — Appointments</h1><small>Kathmandu Metropolitan City (example)</small></div>
+  <label style="margin:0;font-weight:400;color:#fff">Signed in as
+    <select id="staffUser" style="width:auto;margin-left:6px">
+      <option>Sita Shrestha (Front desk)</option>
+      <option>Ram Karki (Ward officer)</option>
+    </select></label></div></header>
+<div class="proto">Prototype for testing only. Data stays in this browser. Not a real government service.</div>
+<nav><div class="in" role="tablist">
+  <button role="tab" data-view="book" aria-selected="true">Book appointment</button>
+  <button role="tab" data-view="manage">My booking</button>
+  <button role="tab" data-view="queue">Staff queue</button>
+  <button role="tab" data-view="report">Daily report</button>
+  <button role="tab" data-view="audit">Audit log</button>
+</div></nav>
+
+<main>
+  <!-- Citizen booking: FR-01 to FR-10 -->
+  <section id="view-book">
+    <h2>Book a time at the ward office</h2>
+    <p class="sub">Choose a service, check what to bring, then pick a time.</p>
+    <div class="card">
+      <div class="step">Step 1 · Service</div>
+      <label for="svc">Which service do you need?</label>
+      <select id="svc"></select>
+      <div id="svcInfo"></div>
+    </div>
+    <div class="card">
+      <div class="step">Step 2 · Date and time</div>
+      <label for="date">Date</label>
+      <input type="date" id="date">
+      <p class="meta" id="dateNote"></p>
+      <div class="slots" id="slots"></div>
+    </div>
+    <div class="card">
+      <div class="step">Step 3 · Your details</div>
+      <form id="bookForm" novalidate>
+        <label for="name">Full name</label>
+        <input id="name" autocomplete="name">
+        <label for="mobile">Mobile number</label>
+        <input id="mobile" inputmode="numeric" placeholder="98XXXXXXXX" autocomplete="tel">
+        <div style="margin-top:16px"><button class="btn" id="bookBtn" type="submit">Confirm booking</button></div>
+        <div id="bookMsg"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Cancel: FR-12 -->
+  <section id="view-manage" hidden>
+    <h2>Find or cancel your booking</h2>
+    <p class="sub">You can cancel online up to 1 hour before your time.</p>
+    <div class="card">
+      <form id="findForm" novalidate>
+        <div class="row">
+          <div><label for="fRef">Reference number</label><input id="fRef" placeholder="W04-…"></div>
+          <div><label for="fMobile">Mobile number</label><input id="fMobile" inputmode="numeric"></div>
+        </div>
+        <div style="margin-top:14px"><button class="btn" type="submit">Find booking</button></div>
+      </form>
+      <div id="findResult"></div>
+    </div>
+  </section>
+
+  <!-- Staff queue: FR-13 to FR-17 -->
+  <section id="view-queue" hidden>
+    <h2 class="no-print">Queue</h2>
+    <p class="sub no-print">Mark visitors as they arrive and finish. Every change is recorded in the audit log.</p>
+    <div class="row no-print" style="margin-bottom:16px">
+      <div><label for="qDate">Date</label><input type="date" id="qDate"></div>
+      <div><label for="qSearch">Search reference or mobile</label><input id="qSearch" placeholder="W04-… or 98…"></div>
+    </div>
+    <div class="card no-print" id="officerCard">
+      <div class="step">Signing officer · <span id="offDate"></span></div>
+      <div id="offStatus"></div>
+      <div class="row" style="margin-top:10px">
+        <div><label for="offReason">Reason (if unavailable)</label><input id="offReason" placeholder="e.g. Municipal meeting"></div>
+        <div style="flex:0 0 auto"><button class="btn sec" id="offBtn" type="button"></button></div>
+      </div>
+      <div id="offMsg"></div>
+    </div>
+    <div class="no-print" style="margin-bottom:12px"><button class="btn sec" id="printBtn" type="button">Print or save today's list (for system downtime)</button></div>
+    <div class="printhead"><h2 id="printTitle"></h2><p>Use this list if the system is down. Write the time each person arrives and is served; enter it into the system within 1 working day.</p></div>
+    <div class="totals" id="totals"></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Time</th><th>Reference</th><th>Name</th><th>Mobile</th><th>Service</th><th>Room</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="queueBody"></tbody>
+    </table></div>
+    <div class="card no-print" style="margin-top:16px">
+      <div class="step">Add walk-in visitor</div>
+      <form id="walkForm" class="row" novalidate>
+        <div><label for="wName">Name</label><input id="wName"></div>
+        <div><label for="wSvc">Service</label><select id="wSvc"></select></div>
+        <div style="flex:0 0 auto"><button class="btn sec" type="submit">Add to queue</button></div>
+      </form>
+      <div id="walkMsg"></div>
+    </div>
+  </section>
+
+  <!-- Report: FR-18, FR-19 -->
+  <section id="view-report" hidden>
+    <h2>Daily report</h2>
+    <p class="sub">Bookings by service and status.</p>
+    <div class="row" style="margin-bottom:16px">
+      <div><label for="rDate">Date</label><input type="date" id="rDate"></div>
+      <div style="flex:0 0 auto"><button class="btn sec" id="csvBtn" type="button">Export CSV</button></div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Service</th><th class="num">Booked</th><th class="num">Arrived</th><th class="num">Completed</th><th class="num">No-show</th><th class="num">Cancelled</th><th class="num">Walk-ins</th><th class="num">Total</th></tr></thead>
+      <tbody id="reportBody"></tbody>
+    </table></div>
+    <div id="csvOut"></div>
+  </section>
+
+  <!-- Audit: NFR-05 -->
+  <section id="view-audit" hidden>
+    <h2>Audit log</h2>
+    <p class="sub">Every status change, newest first. Entries cannot be edited or deleted.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>When</th><th>Reference</th><th>Changed by</th><th>From</th><th>To</th></tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table></div>
+  </section>
+</main>
+<footer>
+  Prototype v1.0 · Ward Office Appointment System case study by Basant Tamang ·
+  <button class="btn sec small" id="resetBtn" type="button">Reset demo data</button>
+</footer>
+
+<script>
+/* ---------- Configuration (would come from the SERVICE, REQUIRED_DOCUMENT and WARD tables) ---------- */
+const WARD = { code: 'W04', open: '10:00', close: '16:00', closedDays: [6] }; // Saturday closed
+const SERVICES = [
+  { id: 1, name: 'Birth registration', fee: 0, time: 'Same day', slotMin: 20, room: 'Room 2 (Registration)', sign: false,
+    docs: ['Hospital birth certificate or health post record', "Parents' citizenship certificates (copies)", "Parents' marriage registration (if available)"] },
+  { id: 2, name: 'Relationship verification recommendation', fee: 200, time: 'Same day', slotMin: 30, room: 'Room 3 (Recommendations)', sign: true,
+    docs: ['Citizenship certificates of all persons named', 'Recent passport-size photos', 'Land ownership certificate or tax receipt (if relevant)'] },
+  { id: 3, name: 'Residence (domicile) recommendation', fee: 200, time: 'Same day', slotMin: 20, room: 'Room 3 (Recommendations)', sign: true,
+    docs: ['Citizenship certificate (copy)', 'Current year house and land tax receipt', 'Recent passport-size photo'] },
+  { id: 4, name: 'Migration certificate', fee: 0, time: '1 working day', slotMin: 30, room: 'Room 2 (Registration)', sign: false,
+    docs: ['Citizenship certificates of family members moving', "Previous ward's migration-out certificate (if moving in)"] }
+];
+const BOOK_AHEAD_DAYS = 14;
+const SIGNER = 'Ward chairperson';   // signs recommendation letters (assumption A4)
+const MOBILE_RE = /^9[678]\d{8}$/;
+
+/* ---------- Storage (localStorage with in-memory fallback) ---------- */
+const KEY = 'ward-appointments-v1';
+let mem = null;
+function load(){ try{ const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); }catch(e){} return mem; }
+function save(d){ mem = d; try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
+
+/* ---------- Date helpers (local time) ---------- */
+const pad = n => String(n).padStart(2,'0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseISO = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const fromMin = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+const todayISO = () => iso(new Date());
+const isClosed = dateStr => WARD.closedDays.includes(parseISO(dateStr).getDay());
+const svcById = id => SERVICES.find(s => s.id === Number(id));
+const mask = m => m ? m.slice(0,2) + 'XXXXX' + m.slice(-3) : '—';           // NFR-06
+const now = () => new Date();
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function slotTimes(svc){
+  const out = []; for (let m = toMin(WARD.open); m + svc.slotMin <= toMin(WARD.close); m += svc.slotMin) out.push(fromMin(m));
+  return out;
+}
+function nextOpenDay(from){ let d = new Date(from); for (let i=0;i<7;i++){ if (!isClosed(iso(d))) return iso(d); d = addDays(d,1);} return iso(from); }
+
+/* ---------- Data ---------- */
+function newRef(dateStr){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = '';
+  for (let i=0;i<4;i++) r += chars[Math.floor(Math.random()*chars.length)];
+  return `${WARD.code}-${dateStr.slice(2).replace(/-/g,'')}-${r}`;
+}
+function seed(){
+  const d = { appointments: [], audit: [], officerAway: {} };
+  const day = nextOpenDay(new Date());
+  const people = [['Anita Gurung','9841234567',1,'10:00'],['Bikash Thapa','9803456789',2,'10:00'],['Chandra Maharjan','9851112233',3,'10:20'],
+                  ['Dipa Rai','9818765432',1,'10:40'],['Gopal Shrestha','9860001122',4,'11:00'],['Hari Tamang','9849988776',2,'11:30'],
+                  ['Kamala Lama','9813344556',3,'12:00'],['Laxmi Adhikari','9842223344',1,'13:20']];
+  people.forEach(([name, mobile, sid, time]) => d.appointments.push({ ref:newRef(day), serviceId:sid, date:day, time, name, mobile, status:'Booked', walkIn:false, createdAt:new Date().toISOString() }));
+  const tmr = nextOpenDay(addDays(parseISO(day),1));
+  d.appointments.push({ ref:newRef(tmr), serviceId:1, date:tmr, time:'10:00', name:'Manoj Karki', mobile:'9845556677', status:'Booked', walkIn:false, createdAt:new Date().toISOString() });
+  return d;
+}
+let db = load() || seed(); db.officerAway = db.officerAway || {}; save(db);
+const officerAway = date => !!db.officerAway[date];
+
+const active = a => a.status !== 'Cancelled';
+function isFree(svcId, date, time){ return !db.appointments.some(a => active(a) && !a.walkIn && a.serviceId===svcId && a.date===date && a.time===time); }
+
+/* ---------- Tabs ---------- */
+const tabs = document.querySelectorAll('[role=tab]');
+function show(view){
+  tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.view===view)));
+  document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'view-'+view);
+  ({queue:()=>{renderQueue();renderOfficer();}, report:renderReport, audit:renderAudit, book:renderSlots})[view]?.();
+}
+tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.view)));
+
+/* ---------- Citizen booking ---------- */
+const svcSel = document.getElementById('svc'), wSvc = document.getElementById('wSvc');
+SERVICES.forEach(s => { svcSel.add(new Option(s.name, s.id)); wSvc.add(new Option(s.name, s.id)); });
+const dateIn = document.getElementById('date');
+dateIn.min = todayISO(); dateIn.max = iso(addDays(new Date(), BOOK_AHEAD_DAYS));          // FR-04
+dateIn.value = nextOpenDay(new Date());
+let chosenTime = null;
+
+function renderSvcInfo(){
+  const s = svcById(svcSel.value);
+  document.getElementById('svcInfo').innerHTML =
+    `<p style="margin-top:10px">Go to: <span class="room">${s.room}</span></p>
+     <p class="meta">Fee: ${s.fee ? 'NPR ' + s.fee : 'Free'} · Processing: ${s.time}${s.sign ? ' · Needs the ' + SIGNER.toLowerCase() + '\'s signature' : ''}</p>
+     <strong>Bring these documents:</strong><ul class="docs">${s.docs.map(x=>`<li>${x}</li>`).join('')}</ul>`;   // FR-02, FR-03
+}
+function renderSlots(){
+  const s = svcById(svcSel.value), date = dateIn.value, box = document.getElementById('slots'), note = document.getElementById('dateNote');
+  box.innerHTML = ''; chosenTime = null;
+  if (!date || date < dateIn.min || date > dateIn.max){ note.textContent = `Choose a date between today and ${dateIn.max}.`; return; }
+  if (isClosed(date)){ note.textContent = 'The ward office is closed on Saturdays. Choose another date.'; return; }   // FR-09
+  const away = officerAway(date);
+  if (s.sign){                                                                                                  // FR-27
+    note.innerHTML = away ? `<span class="avail no">The ${SIGNER.toLowerCase()} is not available on this date, so this service can't be booked. Please choose another date.</span>`
+                          : `<span class="avail">${SIGNER}: available on this date.</span> `;
+    if (away) return;                                                                                           // FR-24
+  } else { note.textContent = ''; }
+  const nowMin = now().getHours()*60 + now().getMinutes();
+  const free = slotTimes(s).filter(t => isFree(s.id, date, t) && !(date === todayISO() && toMin(t) <= nowMin));
+  note.insertAdjacentText('beforeend', free.length ? `${free.length} times available` : 'No times left on this date. Try another day.');
+  free.forEach(t => {
+    const b = document.createElement('button'); b.type='button'; b.textContent=t; b.setAttribute('aria-pressed','false');
+    b.onclick = () => { box.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); chosenTime=t; };
+    box.appendChild(b);
+  });
+}
+svcSel.onchange = () => { renderSvcInfo(); renderSlots(); };
+dateIn.onchange = renderSlots;
+
+document.getElementById('bookForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const out = document.getElementById('bookMsg'), s = svcById(svcSel.value), date = dateIn.value;
+  const name = document.getElementById('name').value.trim(), mobile = document.getElementById('mobile').value.replace(/\D/g,'');
+  const err = m => out.innerHTML = `<div class="msg err">${m}</div>`;
+  if (!chosenTime) return err('Choose a time in Step 2.');
+  if (name.length < 2) return err('Enter your full name.');
+  if (!MOBILE_RE.test(mobile)) return err('Enter a 10-digit mobile number starting with 96, 97 or 98.');            // FR-06
+  if (db.appointments.some(a => active(a) && a.mobile===mobile && a.serviceId===s.id && a.date===date))
+    return err('You already have a booking for this service on this day. Use My booking to see or cancel it.');      // FR-07
+  if (!isFree(s.id, date, chosenTime)){ renderSlots(); return err('That time has just been booked. Please choose another.'); }  // FR-08
+  const a = { ref:newRef(date), serviceId:s.id, date, time:chosenTime, name, mobile, status:'Booked', walkIn:false, createdAt:new Date().toISOString() };
+  db.appointments.push(a); save(db);
+  out.innerHTML = `<div class="msg ok"><div>Booking confirmed. Your reference number:</div>
+    <div class="ref">${a.ref}</div>
+    <div>${s.name} · ${date} at ${a.time}</div>
+    <div style="margin-top:6px">Go straight to: <span class="room">${s.room}</span></div>
+    <div style="margin-top:8px"><strong>Bring:</strong></div><ul class="docs">${s.docs.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <div class="meta">An SMS would be sent to ${mask(mobile)} (simulated in this prototype).</div></div>`;   // FR-10, FR-11
+  document.getElementById('name').value=''; document.getElementById('mobile').value='';
+  renderSlots();
+});
+
+/* ---------- Find / cancel ---------- */
+document.getElementById('findForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const ref = document.getElementById('fRef').value.trim().toUpperCase(), mob = document.getElementById('fMobile').value.replace(/\D/g,'');
+  const box = document.getElementById('findResult');
+  const a = db.appointments.find(x => x.ref === ref && x.mobile === mob);
+  if (!a){ box.innerHTML = '<div class="msg err">No booking matches that reference and mobile number.</div>'; return; }
+  const s = svcById(a.serviceId);
+  const start = parseISO(a.date); start.setHours(...a.time.split(':').map(Number));
+  const canCancel = a.status === 'Booked' && (start - now()) > 60*60*1000;                                      // FR-12
+  box.innerHTML = `<div class="msg ${a.status==='Cancelled'?'err':'ok'}"><div class="ref">${a.ref}</div>
+    <div>${s.name} · ${a.date} at ${a.time} · ${s.room} · <span class="pill s-${a.status}">${a.status}</span></div>
+    ${a.rebook && a.status==='Booked' ? `<div style="margin-top:6px"><strong>The ${SIGNER.toLowerCase()} is not available on this date. Please cancel and book another date.</strong></div>` : ''}</div>
+    ${canCancel ? '<div style="margin-top:12px"><button class="btn sec" id="cancelBtn" type="button">Cancel this booking</button></div>'
+                : a.status==='Booked' ? '<p class="meta">It is less than 1 hour to your time, so this booking can no longer be cancelled online.</p>' : ''}`;
+  if (canCancel) document.getElementById('cancelBtn').onclick = () => { setStatus(a, 'Cancelled', 'Citizen (online)'); box.innerHTML = '<div class="msg ok">Your booking is cancelled. The time is now free for others.</div>'; };
+});
+
+/* ---------- Status changes + audit (FR-15, NFR-05) ---------- */
+const ALLOWED = { Booked:['Arrived','NoShow','Cancelled'], Arrived:['Completed'], Completed:[], NoShow:[], Cancelled:[] };
+function setStatus(a, to, by){
+  if (!ALLOWED[a.status].includes(to)) return false;
+  db.audit.push({ at:new Date().toISOString(), ref:a.ref, by: by || document.getElementById('staffUser').value, from:a.status, to });
+  a.status = to; save(db); return true;
+}
+
+/* ---------- Staff queue ---------- */
+const qDate = document.getElementById('qDate'), qSearch = document.getElementById('qSearch');
+qDate.value = nextOpenDay(new Date());
+function renderQueue(){
+  const term = qSearch.value.trim().toUpperCase();
+  const day = db.appointments.filter(a => a.date === qDate.value)
+     .sort((x,y) => (x.time||'99').localeCompare(y.time||'99'));
+  const list = term ? day.filter(a => a.ref.includes(term) || a.mobile.includes(term.replace(/\D/g,'') || '#')) : day;
+  const c = st => day.filter(a => a.status===st).length;
+  document.getElementById('totals').innerHTML =
+    [['Booked',c('Booked')],['Arrived',c('Arrived')],['Completed',c('Completed')],['No-show',c('NoShow')]].map(([l,n])=>`<div><b>${n}</b><span>${l}</span></div>`).join('');
+  const body = document.getElementById('queueBody');
+  body.innerHTML = list.length ? '' : '<tr><td colspan="8" class="meta">No bookings for this date.</td></tr>';
+  list.forEach(a => {
+    const tr = document.createElement('tr');
+    const btns = ALLOWED[a.status].filter(s => s!=='Cancelled').map(s => `<button class="btn small ${s==='NoShow'?'sec':''}" data-to="${s}">${s==='NoShow'?'No-show':'Mark '+s}</button>`).join('');
+    tr.innerHTML = `<td>${a.time || '—'}</td><td style="font-family:ui-monospace,Consolas,monospace">${a.ref}</td>
+      <td>${esc(a.name)}${a.walkIn?'<span class="walk">Walk-in</span>':''}${a.rebook && a.status==='Booked'?'<span class="rebook">Asked to rebook</span>':''}</td><td>${mask(a.mobile)}</td><td>${svcById(a.serviceId).name}</td><td>${svcById(a.serviceId).room}</td>
+      <td><span class="pill s-${a.status}">${a.status==='NoShow'?'No-show':a.status}</span></td><td><div class="actions">${btns}</div></td>`;
+    tr.querySelectorAll('button').forEach(b => b.onclick = () => { setStatus(a, b.dataset.to); renderQueue(); });
+    body.appendChild(tr);
+  });
+}
+qDate.onchange = () => { renderQueue(); renderOfficer(); }; qSearch.oninput = renderQueue;
+
+/* ---------- Signing officer availability (FR-23, FR-24, FR-25) ---------- */
+function renderOfficer(){
+  const d = qDate.value, away = db.officerAway[d];
+  document.getElementById('offDate').textContent = d;
+  document.getElementById('offStatus').innerHTML = away
+    ? `<p class="avail no">${SIGNER} marked unavailable (${esc(away.reason || 'no reason given')}) by ${esc(away.by)}.</p>`
+    : `<p class="avail">${SIGNER} is available on this date.</p>`;
+  document.getElementById('offBtn').textContent = away ? 'Mark available again' : `Mark ${SIGNER.toLowerCase()} unavailable`;
+}
+document.getElementById('offBtn').onclick = () => {
+  const d = qDate.value, by = document.getElementById('staffUser').value, msg = document.getElementById('offMsg');
+  if (db.officerAway[d]){
+    delete db.officerAway[d];
+    db.audit.push({ at:new Date().toISOString(), ref:`${SIGNER} ${d}`, by, from:'Unavailable', to:'Available' });
+    msg.innerHTML = '<div class="msg ok">Marked available. Bookings are open again for this date.</div>';
+  } else {
+    const reason = document.getElementById('offReason').value.trim();
+    db.officerAway[d] = { reason, by, at:new Date().toISOString() };
+    db.audit.push({ at:new Date().toISOString(), ref:`${SIGNER} ${d}`, by, from:'Available', to:'Unavailable' + (reason ? ` (${reason})` : '') });
+    const hit = db.appointments.filter(a => a.date===d && a.status==='Booked' && svcById(a.serviceId).sign);
+    hit.forEach(a => a.rebook = true);
+    msg.innerHTML = `<div class="msg ok">New bookings that need a signature are closed for ${d}. ` +
+      (hit.length ? `${hit.length} booked citizen(s) would get an SMS asking them to rebook (simulated): ${hit.map(a => esc(a.name)).join(', ')}.` : 'No one was already booked.') + '</div>';
+  }
+  document.getElementById('offReason').value = '';
+  save(db); renderOfficer(); renderQueue();
+};
+document.getElementById('printBtn').onclick = () => {                                                        // FR-26
+  document.getElementById('printTitle').textContent = `Ward No. 4 — booking list for ${qDate.value}`;
+  qSearch.value = ''; renderQueue(); window.print();
+};
+
+document.getElementById('walkForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('wName').value.trim(), msg = document.getElementById('walkMsg');
+  if (name.length < 2){ msg.innerHTML = '<div class="msg err">Enter the visitor\'s name.</div>'; return; }
+  const a = { ref:newRef(qDate.value), serviceId:Number(wSvc.value), date:qDate.value, time:null, name, mobile:'', status:'Booked', walkIn:true, createdAt:new Date().toISOString() };
+  db.appointments.push(a); setStatus(a, 'Arrived');                                                          // FR-16
+  document.getElementById('wName').value=''; msg.innerHTML = `<div class="msg ok">${esc(name)} added as walk-in (${a.ref}).</div>`;
+  renderQueue();
+});
+
+/* ---------- Report ---------- */
+const rDate = document.getElementById('rDate'); rDate.value = nextOpenDay(new Date());
+function reportRows(){
+  return SERVICES.map(s => {
+    const xs = db.appointments.filter(a => a.date===rDate.value && a.serviceId===s.id);
+    const n = st => xs.filter(a => a.status===st).length;
+    return { service:s.name, booked:n('Booked'), arrived:n('Arrived'), completed:n('Completed'), noShow:n('NoShow'), cancelled:n('Cancelled'), walkIns:xs.filter(a=>a.walkIn).length, total:xs.length };
+  });
+}
+function renderReport(){
+  const rows = reportRows(), keys = ['booked','arrived','completed','noShow','cancelled','walkIns','total'];
+  const tot = Object.fromEntries(keys.map(k => [k, rows.reduce((t,r)=>t+r[k],0)]));
+  document.getElementById('reportBody').innerHTML = rows.map(r => `<tr><td>${r.service}</td>${keys.map(k=>`<td class="num">${r[k]}</td>`).join('')}</tr>`).join('')
+    + `<tr style="font-weight:600"><td>Total</td>${keys.map(k=>`<td class="num">${tot[k]}</td>`).join('')}</tr>`;
+  document.getElementById('csvOut').innerHTML = '';
+}
+rDate.onchange = renderReport;
+document.getElementById('csvBtn').onclick = () => {                                                           // FR-19
+  const rows = reportRows();
+  const csv = ['date,service,booked,arrived,completed,no_show,cancelled,walk_ins,total']
+    .concat(rows.map(r => [rDate.value, `"${r.service}"`, r.booked, r.arrived, r.completed, r.noShow, r.cancelled, r.walkIns, r.total].join(','))).join('\n');
+  document.getElementById('csvOut').innerHTML = `<div class="card" style="margin-top:16px"><label for="csvText" style="margin-top:0">CSV (select and copy)</label><textarea id="csvText" readonly></textarea></div>`;
+  const t = document.getElementById('csvText'); t.value = csv; t.select();
+};
+
+/* ---------- Audit ---------- */
+function renderAudit(){
+  const body = document.getElementById('auditBody');
+  body.innerHTML = db.audit.length ? db.audit.slice().reverse().map(x =>
+    `<tr><td>${new Date(x.at).toLocaleString()}</td><td style="font-family:ui-monospace,Consolas,monospace">${x.ref}</td><td>${x.by}</td><td>${x.from}</td><td>${x.to}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="meta">No status changes yet. Update a booking in the staff queue.</td></tr>';
+}
+
+document.getElementById('resetBtn').onclick = () => { db = seed(); save(db); show('book'); };
+
+renderSvcInfo(); renderSlots();
+</script>
+</body>
+</html>

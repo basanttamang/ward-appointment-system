@@ -1,0 +1,58 @@
+=== As-is: a ward visit today ===
+
+flowchart TD
+    subgraph Citizen
+        A([Needs a ward service]) --> C[Travels to ward office]
+        C --> D[Waits in a long line<br/>P1]
+        G[Goes to another room] --> D
+        R([Returns another day])
+        J([Receives document])
+    end
+    subgraph Front desk
+        D --> E{Right room<br/>for this service?}
+        E -- No, P8 --> G
+        E -- Yes --> S{Computer<br/>system working?}
+        S -- No, P9 --> R
+        S -- Yes --> F[Records application]
+    end
+    subgraph Signing officer
+        F --> H{Officer present<br/>to sign?}
+        H -- No, P10 --> R
+        H -- Yes --> I[Signs]
+        I --> J
+    end
+    R --> C
+
+=== To-be: with appointment booking ===
+
+flowchart TD
+    subgraph Citizen
+        A([Needs a ward service]) --> B[Opens booking page<br/>chooses service]
+        B --> B2[Sees room number<br/>and documents to bring]
+        B2 --> D[Chooses a date]
+        D --> E[Picks a free time,<br/>enters mobile number]
+        E --> F[Gets reference number,<br/>time and room by SMS]
+        F --> G[Goes straight to<br/>the right room at that time]
+        X[Gets SMS:<br/>please rebook] --> D
+        N([Receives document])
+    end
+    subgraph System
+        D --> S1{Signing officer<br/>available that day?}
+        S1 -- No --> S2[No slots shown;<br/>suggest another date]
+        S2 --> D
+        S1 -- Yes --> E
+        L[(Audit log)]
+    end
+    subgraph Front desk
+        G --> H[Finds booking,<br/>marks Arrived]
+        H --> L
+        P[System down?<br/>Use printed daily list] -.-> H
+        M[Marks officer unavailable<br/>for a date] --> L
+        M --> X
+    end
+    subgraph Signing officer
+        H --> I[Signs]
+        I --> K[Staff mark Completed]
+        K --> L
+        K --> N
+    end

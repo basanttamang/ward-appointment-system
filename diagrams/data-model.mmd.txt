@@ -1,0 +1,96 @@
+erDiagram
+    WARD ||--o{ SERVICE : offers
+    WARD ||--o{ STAFF : employs
+    WARD ||--o{ OFFICER_AVAILABILITY : "records"
+    STAFF ||--o{ OFFICER_AVAILABILITY : "sets"
+    SERVICE ||--o{ REQUIRED_DOCUMENT : needs
+    SERVICE ||--o{ SLOT : "has"
+    SLOT ||--o| APPOINTMENT : "is booked by"
+    SERVICE ||--o{ APPOINTMENT : "is for"
+    CITIZEN ||--o{ APPOINTMENT : makes
+    APPOINTMENT ||--o{ AUDIT_LOG : "status changes"
+    STAFF ||--o{ AUDIT_LOG : performs
+
+    WARD {
+        int ward_id PK
+        string municipality
+        int ward_no
+        string address
+        time opens_at
+        time closes_at
+    }
+    SERVICE {
+        int service_id PK
+        int ward_id FK
+        string name_en
+        string name_ne
+        decimal fee_npr
+        int slot_minutes
+        string room "e.g. Room 3; P8"
+        boolean needs_signature "P10"
+        boolean active
+    }
+    OFFICER_AVAILABILITY {
+        int ward_id FK
+        date unavailable_on "PK with ward_id"
+        string reason
+        int set_by_staff_id FK
+        timestamp set_at
+    }
+    REQUIRED_DOCUMENT {
+        int document_id PK
+        int service_id FK
+        string description
+        boolean mandatory
+    }
+    SLOT {
+        int slot_id PK
+        int service_id FK
+        date slot_date
+        time start_time
+        boolean open
+    }
+    CITIZEN {
+        int citizen_id PK
+        string full_name
+        string mobile_no UK
+        timestamp created_at
+    }
+    APPOINTMENT {
+        int appointment_id PK
+        string reference_no UK
+        int slot_id FK "unique; null for walk-ins"
+        int service_id FK
+        date visit_date
+        int citizen_id FK
+        string status "Booked, Arrived, Completed, NoShow, Cancelled"
+        boolean walk_in
+        timestamp created_at
+    }
+    STAFF {
+        int staff_id PK
+        int ward_id FK
+        string username UK
+        string password_hash
+        string role "FrontDesk, WardOfficer, Admin"
+    }
+    AUDIT_LOG {
+        int audit_id PK
+        int appointment_id FK
+        int staff_id FK
+        string old_status
+        string new_status
+        timestamp changed_at
+    }
+
+=== dbdiagram.io version (cleaner alternative) ===
+
+Table ward { ward_id int [pk]  municipality varchar  ward_no int  address varchar  opens_at time  closes_at time }
+Table service { service_id int [pk]  ward_id int [ref: > ward.ward_id]  name_en varchar  name_ne varchar  fee_npr decimal  slot_minutes int  room varchar  needs_signature boolean  active boolean }
+Table officer_availability { ward_id int [ref: > ward.ward_id]  unavailable_on date  reason varchar  set_by_staff_id int [ref: > staff.staff_id]  set_at timestamp  indexes { (ward_id, unavailable_on) [pk] } }
+Table required_document { document_id int [pk]  service_id int [ref: > service.service_id]  description varchar  mandatory boolean }
+Table slot { slot_id int [pk]  service_id int [ref: > service.service_id]  slot_date date  start_time time  open boolean }
+Table citizen { citizen_id int [pk]  full_name varchar  mobile_no varchar [unique]  created_at timestamp }
+Table appointment { appointment_id int [pk]  reference_no varchar [unique]  slot_id int [unique, null, ref: - slot.slot_id]  service_id int [ref: > service.service_id]  visit_date date  citizen_id int [ref: > citizen.citizen_id]  status varchar  walk_in boolean  created_at timestamp }
+Table staff { staff_id int [pk]  ward_id int [ref: > ward.ward_id]  username varchar [unique]  password_hash varchar  role varchar }
+Table audit_log { audit_id int [pk]  appointment_id int [ref: > appointment.appointment_id]  staff_id int [ref: > staff.staff_id]  old_status varchar  new_status varchar  changed_at timestamp }

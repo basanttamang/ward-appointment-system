@@ -8,5 +8,6 @@ A1,Assumption,Each ward sets its own hours and slots per service,,,Basant,Confir
 A2,Assumption,An SMS gateway is available to the municipality,,,Basant,Confirm with ward staff,Open,2026-10-22,
 I1,Issue,Project started 2 days later than first planned,,Medium,Basant,Prototype and documents drafted in advance; analysis compressed,Closed,2026-10-22,2026-10-24
 D1,Dependency,UAT testers available on 31 Oct,,,Tester,Book 3 testers by 28 Oct,Open,2026-10-22,
-R6,Risk,Two of four interview problems (system outages; absent signing officer) cannot be solved by a booking system alone,High,Medium,Basant,Add fallback requirement and a process recommendation; state out-of-scope items clearly in SRS,Open,2026-10-24,
+R6,Risk,Two of four interview problems (system outages; absent signing officer) cannot be solved by a booking system alone,High,Medium,Basant,Add fallback requirement and a process recommendation; state out-of-scope items clearly in SRS,Mitigated,2026-10-24,2026-10-26
 A3,Assumption,The ward office already uses a computer system that sometimes fails,,,Basant,Confirm what system it is in a staff interview,Open,2026-10-24,
+A4,Assumption,Recommendation letters need the ward chairperson to sign; birth registration and migration certificates are signed by the ward secretary,,,Basant,Confirm in staff interview,Open,2026-10-25,

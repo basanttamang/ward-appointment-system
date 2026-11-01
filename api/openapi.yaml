@@ -1,0 +1,340 @@
+openapi: 3.0.3
+info:
+  title: Ward Office Appointment System API
+  version: 1.0.0
+  description: |
+    API for booking ward office appointments and managing the daily queue.
+    Citizen endpoints are public. Staff endpoints require a bearer token and
+    return data for the caller's own ward only (NFR-04).
+servers:
+  - url: https://api.example.gov.np/v1
+    description: Illustrative address only
+
+tags:
+  - name: Citizen
+  - name: Staff
+  - name: Reports
+
+paths:
+  /services:
+    get:
+      tags: [Citizen]
+      summary: List a ward's services with required documents (FR-01, FR-02, FR-03)
+      parameters:
+        - name: wardId
+          in: query
+          required: true
+          schema: { type: integer, example: 4 }
+      responses:
+        '200':
+          description: Services offered by the ward
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Service' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /slots:
+    get:
+      tags: [Citizen]
+      summary: Free slots for a service on a date (FR-04, FR-09)
+      parameters:
+        - name: serviceId
+          in: query
+          required: true
+          schema: { type: integer }
+        - name: date
+          in: query
+          required: true
+          description: Date in AD, within the next 14 days
+          schema: { type: string, format: date, example: '2026-10-30' }
+      responses:
+        '200':
+          description: Free slots, ordered by time
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Slot' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /appointments:
+    post:
+      tags: [Citizen]
+      summary: Book a slot (FR-05 to FR-11)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NewAppointment' }
+      responses:
+        '201':
+          description: Booking confirmed; SMS queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Appointment' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Slot already taken, or citizen already booked this service that day
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              examples:
+                slotTaken: { value: { code: SLOT_TAKEN, message: 'This slot has just been booked. Please choose another.' } }
+                duplicate: { value: { code: DUPLICATE_BOOKING, message: 'You already have a booking for this service on this day.' } }
+
+  /appointments/{reference}/cancel:
+    post:
+      tags: [Citizen]
+      summary: Cancel a booking (FR-12)
+      parameters:
+        - $ref: '#/components/parameters/Reference'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mobileNo]
+              properties:
+                mobileNo: { type: string, example: '9841234567' }
+      responses:
+        '200': { description: Booking cancelled }
+        '403': { description: Mobile number does not match the booking }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { description: Less than 1 hour before the slot; cannot cancel online }
+
+  /appointments/{reference}/status:
+    patch:
+      tags: [Staff]
+      summary: Change a booking's status; writes an audit record (FR-15, NFR-05)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/Reference'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [Arrived, Completed, NoShow] }
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Appointment' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Booking belongs to another ward }
+        '409': { description: Status change not allowed, e.g. Completed to Arrived }
+
+  /officer-availability:
+    get:
+      tags: [Citizen]
+      summary: Is the signing officer available on a date? (FR-27)
+      parameters:
+        - name: wardId
+          in: query
+          required: true
+          schema: { type: integer }
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Availability (the reason is not shown to the public)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date: { type: string, format: date }
+                  available: { type: boolean }
+    put:
+      tags: [Staff]
+      summary: Mark the signing officer unavailable or available for a date (FR-23, FR-25, NFR-05)
+      description: |
+        Marking unavailable stops new bookings for services that need a signature (FR-24),
+        returns the bookings affected, and queues a rebooking SMS to each (FR-25).
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, available]
+              properties:
+                date: { type: string, format: date }
+                available: { type: boolean }
+                reason: { type: string, example: Attending municipal meeting }
+      responses:
+        '200':
+          description: Saved; affected bookings listed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  affectedBookings:
+                    type: array
+                    items: { $ref: '#/components/schemas/Appointment' }
+                  smsQueued: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /queue/today/print:
+    get:
+      tags: [Staff]
+      summary: Printable list of today's bookings, for use if the system goes down (FR-26, NFR-13)
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: PDF of today's queue with time, reference, name, service and room
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /queue/today:
+    get:
+      tags: [Staff]
+      summary: Today's queue for the caller's ward (FR-13, FR-14, FR-17)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Reference number or mobile number
+          schema: { type: string }
+      responses:
+        '200':
+          description: Queue ordered by slot time, with totals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totals:
+                    type: object
+                    properties:
+                      booked: { type: integer }
+                      arrived: { type: integer }
+                      completed: { type: integer }
+                      noShow: { type: integer }
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Appointment' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /reports/daily:
+    get:
+      tags: [Reports]
+      summary: Bookings by service and status for a date (FR-18, FR-19)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [json, csv], default: json }
+      responses:
+        '200':
+          description: Daily report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    service: { type: string }
+                    booked: { type: integer }
+                    completed: { type: integer }
+                    noShow: { type: integer }
+                    cancelled: { type: integer }
+            text/csv:
+              schema: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Only ward officers and administrators can view reports }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    Reference:
+      name: reference
+      in: path
+      required: true
+      schema: { type: string, example: 'W04-261030-7K2P' }
+  schemas:
+    Service:
+      type: object
+      properties:
+        serviceId: { type: integer }
+        nameEn: { type: string, example: Relationship verification recommendation }
+        nameNe: { type: string }
+        feeNpr: { type: number, example: 200 }
+        processingTime: { type: string, example: Same day }
+        room: { type: string, example: Room 3, description: FR-22 }
+        needsSignature: { type: boolean, description: FR-24 }
+        requiredDocuments:
+          type: array
+          items: { type: string }
+    Slot:
+      type: object
+      properties:
+        slotId: { type: integer }
+        date: { type: string, format: date }
+        startTime: { type: string, example: '10:30' }
+    NewAppointment:
+      type: object
+      required: [slotId, fullName, mobileNo]
+      properties:
+        slotId: { type: integer }
+        fullName: { type: string, minLength: 2, maxLength: 100 }
+        mobileNo:
+          type: string
+          pattern: '^9[678][0-9]{8}$'
+          description: 10-digit Nepali mobile number (FR-06)
+    Appointment:
+      type: object
+      properties:
+        reference: { type: string }
+        service: { type: string }
+        date: { type: string, format: date }
+        startTime: { type: string }
+        room: { type: string, description: FR-10 }
+        fullName: { type: string }
+        mobileMasked: { type: string, example: '98XXXXX567', description: NFR-06 }
+        status: { type: string, enum: [Booked, Arrived, Completed, NoShow, Cancelled] }
+        walkIn: { type: boolean }
+        requiredDocuments:
+          type: array
+          items: { type: string }
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing or invalid token
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

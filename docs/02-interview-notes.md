@@ -1,7 +1,7 @@
 # Interview Notes
 
 **Interviews held:** 23–24 October 2026 · **Interviewer:** Basant Tamang
-**People interviewed:** 10 citizens who had recently visited a ward office in Kathmandu · 3 ward staff
+**People interviewed:** [N] citizens who had recently visited a ward office in Kathmandu · [N] ward staff
 **Method:** [in person / by phone], about 15 minutes each, using the [interview guide](01-interview-guide.md). No names recorded.
 
 > **In simple words:** I asked people about their last visit to the ward office. They told me about four problems. Only one of them (long queues) was something I had expected. The other three were new, which is exactly why interviews matter.
